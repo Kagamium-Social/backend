@@ -72,7 +72,7 @@ class loginData(BaseModel):
 
 class regData(BaseModel):
     login: str
-    password: str
+    passwordmd5: str
     username: str
     firstname: str
     lastname: Optional[str] = None
@@ -113,8 +113,7 @@ async def register_process(response: Response, data: regData):
         cursor.execute("SELECT login FROM users WHERE login = ?", (data.login,))
         loginexists = cursor.fetchone()
         if loginexists is None:
-            passwordhash = hashlib.md5(data.password.encode('utf-8')).hexdigest()
-            cursor.execute("INSERT INTO users (login, password, username, firstname, lastname, nickname) VALUES (?, ?, ?, ?, ?, ?)", (data.login, passwordhash, data.username, data.firstname, data.lastname, data.nickname))
+            cursor.execute("INSERT INTO users (login, password, username, firstname, lastname, nickname) VALUES (?, ?, ?, ?, ?, ?)", (data.login, data.passwordmd5, data.username, data.firstname, data.lastname, data.nickname))
             conn.commit()
             cursor.execute("SELECT userid FROM users WHERE login = ?", (data.login,))
             userid = cursor.fetchone()
