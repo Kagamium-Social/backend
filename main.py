@@ -64,7 +64,7 @@ init_db() # telling server to shit itself
 
 app = FastAPI()
 
-@app.get(f"{api_path}/") # It would have return the instance info, but we're instance info is stored in "kagamiumInstance.js" file in frontend part of this project
+@app.get(f"{api_path}/") # It would have return the instance info, but instance info is stored in "kagamiumInstance.js" file in frontend part of this project
 async def root():
     return {"message": "Konata Izumi"} # посхалко 1488
 
