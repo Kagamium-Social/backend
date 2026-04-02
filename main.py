@@ -1,5 +1,6 @@
 print("Importing modules...")
 
+from pydantic import BaseModel
 import uvicorn
 from fastapi import FastAPI, Response, Cookie, Header
 from typing import Optional
@@ -61,9 +62,23 @@ def init_db():
 
 init_db() # telling server to shit itself
 
-# ==== API Endpoints ====
-
 app = FastAPI()
+
+# ==== Classes ====
+
+class loginData(BaseModel):
+    login: str
+    passwordmd5: str
+
+class regData(BaseModel):
+    login: str
+    password: str
+    username: str
+    firstname: str
+    lastname: Optional[str] = None
+    nickname: Optional[str] = None
+
+# ==== API Endpoints ====
 
 @app.get(f"{api_path}/") # It would have return the instance info, but instance info is stored in "kagamiumInstance.js" file in frontend part of this project
 async def root():
@@ -72,14 +87,14 @@ async def root():
 # ==== Logging/registering process ====
 
 @app.get(f"{api_path}/login")
-async def login_process(response: Response, login: str, password: str):
+async def login_process(response: Response, data: loginData):
     try:
-        cursor.execute("SELECT userid, password FROM users WHERE login = ?", (login,))
+        cursor.execute("SELECT userid, password FROM users WHERE login = ?", (data.login,))
         user_data = cursor.fetchone()
         if not user_data:
             return {"status": "failed"}
         user_id, db_password_hash = user_data
-        if db_password_hash == password:
+        if db_password_hash == data.passwordmd5:
             session_id = str(uuid.uuid4())
             cursor.execute("INSERT INTO sessions (uuidsession, userid) VALUES (?, ?)", (session_id, user_id))
             conn.commit()
@@ -92,18 +107,16 @@ async def login_process(response: Response, login: str, password: str):
         print(f"server shat itself: {e}") 
         return {"status": "error"}
 
-@app.get(f"{api_path}/register")
-async def register_process(response: Response, login: str, password: str, username: str, firstname: str, lastname: str = "", nickname: str = ""):
+@app.post(f"{api_path}/register")
+async def register_process(response: Response, data: regData):
     try:
-        cursor.execute("SELECT login FROM users WHERE login = ?", (login,))
+        cursor.execute("SELECT login FROM users WHERE login = ?", (data.login,))
         loginexists = cursor.fetchone()
         if loginexists is None:
-            lastname = lastname if lastname != "" else None
-            nickname = nickname if nickname != "" else None
-            passwordhash = hashlib.md5(password.encode('utf-8')).hexdigest()
-            cursor.execute("INSERT INTO users (login, password, username, firstname, lastname, nickname) VALUES (?, ?, ?, ?, ?, ?)", (login, passwordhash, username, firstname, lastname, nickname))
+            passwordhash = hashlib.md5(data.password.encode('utf-8')).hexdigest()
+            cursor.execute("INSERT INTO users (login, password, username, firstname, lastname, nickname) VALUES (?, ?, ?, ?, ?, ?)", (data.login, passwordhash, data.username, data.firstname, data.lastname, data.nickname))
             conn.commit()
-            cursor.execute("SELECT userid FROM users WHERE login = ?", (login,))
+            cursor.execute("SELECT userid FROM users WHERE login = ?", (data.login,))
             userid = cursor.fetchone()
             session_id = str(uuid.uuid4())
             cursor.execute("INSERT INTO sessions (uuidsession, userid) VALUES (?, ?)", (session_id, userid[0]))
