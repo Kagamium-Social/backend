@@ -95,7 +95,7 @@ async def log_me_in_bitch(response: Response, login: str, password: str):
 async def get_cookie(uuidsession: Optional[str] = Cookie(None)):
     return {"sessionuuid": uuidsession}
 
-# ==== Это стартует сервер ====
+# ==== The part where server starts ====
 
 print("Starting server!")
 
