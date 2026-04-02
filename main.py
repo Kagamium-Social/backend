@@ -28,7 +28,7 @@ def init_db():
             userid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             login TEXT NOT NULL,
             password TEXT NOT NULL,
-            reg_date DATE,
+            reg_date DATETIME NOT NULL,
             firstname TEXT NOT NULL,
             lastname TEXT,
             displayname TEXT,
