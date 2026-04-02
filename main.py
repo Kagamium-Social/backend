@@ -28,10 +28,11 @@ def init_db():
             userid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             login TEXT NOT NULL,
             password TEXT NOT NULL,
-            reg_date DATETIME NOT NULL,
+            reg_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            username TEXT NOT NULL,
             firstname TEXT NOT NULL,
             lastname TEXT,
-            displayname TEXT,
+            nickname TEXT,
             bio TEXT,
             contacts TEXT,
             favfilms TEXT,
@@ -68,10 +69,10 @@ app = FastAPI()
 async def root():
     return {"message": "Konata Izumi"} # посхалко 1488
 
-# ==== Logging/Signing in process ====
+# ==== Logging/registering process ====
 
 @app.get(f"{api_path}/login")
-async def log_me_in_bitch(response: Response, login: str, password: str):
+async def login_process(response: Response, login: str, password: str):
     try:
         cursor.execute("SELECT userid, password FROM users WHERE login = ?", (login,))
         user_data = cursor.fetchone()
@@ -81,6 +82,31 @@ async def log_me_in_bitch(response: Response, login: str, password: str):
         if db_password_hash == password:
             session_id = str(uuid.uuid4())
             cursor.execute("INSERT INTO sessions (uuidsession, userid) VALUES (?, ?)", (session_id, user_id))
+            conn.commit()
+            response.set_cookie(key="uuidsession", value=session_id)
+            return {"status": "success"}
+        else:
+            return {"status": "failed"}
+
+    except Exception as e:
+        print(f"server shat itself: {e}") 
+        return {"status": "error"}
+
+@app.get(f"{api_path}/register")
+async def register_process(response: Response, login: str, password: str, username: str, firstname: str, lastname: str = "", nickname: str = ""):
+    try:
+        cursor.execute("SELECT login FROM users WHERE login = ?", (login,))
+        loginexists = cursor.fetchone()
+        if loginexists is None:
+            lastname = lastname if lastname != "" else None
+            nickname = nickname if nickname != "" else None
+            passwordhash = hashlib.md5(password.encode('utf-8')).hexdigest()
+            cursor.execute("INSERT INTO users (login, password, username, firstname, lastname, nickname) VALUES (?, ?, ?, ?, ?, ?)", (login, passwordhash, username, firstname, lastname, nickname))
+            conn.commit()
+            cursor.execute("SELECT userid FROM users WHERE login = ?", (login,))
+            userid = cursor.fetchone()
+            session_id = str(uuid.uuid4())
+            cursor.execute("INSERT INTO sessions (uuidsession, userid) VALUES (?, ?)", (session_id, userid[0]))
             conn.commit()
             response.set_cookie(key="uuidsession", value=session_id)
             return {"status": "success"}
