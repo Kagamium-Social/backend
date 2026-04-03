@@ -19,6 +19,7 @@ backendPort = 8000
 hostingLocally = True
 api_path = "" # This is where you put the api path (example: https://example.social/[api_path variable]/[endpoints]) (if api is not on separate (sub)domain, please put "/" at the beginning please)
 testMode = True
+CORSorigins = ["*"]
 
 # ==== Database ====
 
@@ -67,7 +68,17 @@ def init_db():
 
 init_db() # telling server to shit itself
 
+# ==== FastAPI stuff duh ====
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORSorigins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ==== Classes ====
 
