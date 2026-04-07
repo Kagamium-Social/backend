@@ -1,8 +1,5 @@
-# depecarted idk
-
-print("Importing modules...")
-
-
+# i DO NOT KNOW YET what it does and how it does so пусть пока что it import all requirements from main dot py
+# soon this dot py will do API interactions i guess
 
 from pathlib import Path
 from pydantic import BaseModel
@@ -14,76 +11,12 @@ import sqlite3
 import hashlib
 import uuid
 
+from config import *
+
 Path("uploads").mkdir(parents=True, exist_ok=True)
-
-# ==== Some settings ====
-
-print("Setting some settings variables...")
-
-instanceMotd = "vadim gay"
-instanceMascotImage = "" # Leave empty is your instance doesn't have mascot image
-instanceMascotName = "" # Leave empty is your instance doesn't have mascot at all
-backendPort = 8000
-hostingLocally = True
-api_path = "" # This is where you put the api path (example: https://example.social/[api_path variable]/[endpoints]) (if api is not on separate (sub)domain, please put "/" at the beginning please)
-testMode = True
-CORSorigins = ["*"]
-
-# ==== Database ====
-
-print("Initializing DB...")
 
 conn = sqlite3.connect("KagamiHiiragi.db", check_same_thread=False)
 cursor = conn.cursor()
-
-def init_db():
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            userid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            login TEXT NOT NULL,
-            password TEXT NOT NULL,
-            reg_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            username TEXT NOT NULL,
-            firstname TEXT NOT NULL,
-            lastname TEXT,
-            nickname TEXT,
-            avatar TEXT,
-            bio TEXT,
-            contacts TEXT,
-            favfilms TEXT,
-            favmusic TEXT,
-            favgames TEXT,
-            additionalinfo TEXT
-        )
-    ''') # мотя сказал что лучше сделать чтобы в этой таблице были логины пароли вместе с отображаемыми данными, типо имя и фамилия, мне лично это не нравиться, но делаю как сказал мотя -дреля
-    # Passwords are hashed using MD5 since this is just a hobby project
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS friends (
-            useridfollower INTEGER NOT NULL,
-            useridfollowing INTEGER NOT NULL,
-            areFriends INTERGER NOT NULL DEFAULT 0
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            userid INTEGER NOT NULL,
-            posttext TEXT NOT NULL,
-            attachedimage TEXT,
-            repostpostid INTEGER
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sessions (
-            uuidsession TEXT NOT NULL,
-            userid INTEGER NOT NULL
-        )
-    ''')
-    conn.commit()
-
-init_db() # telling server to shit itself
-
-# ==== FastAPI stuff duh ====
 
 app = FastAPI()
 
@@ -230,5 +163,4 @@ def getUserIDfromSessionUUID(uuidsession):
 
 print("Starting server!")
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1" if hostingLocally is True else "0.0.0.0", port=backendPort)
+uvicorn.run(app, host="127.0.0.1" if hostingLocally is True else "0.0.0.0", port=backendPort)
