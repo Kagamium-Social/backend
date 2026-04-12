@@ -1,3 +1,9 @@
-curl -X POST "http://127.0.0.1:8000/register" -H "Content-Type: application/json" -d "{\"login\": \"drel\", \"passwordmd5\": \"c4ca4238a0b923820dcc509a6f75849b\", \"username\": \"drel4\", \"firstname\": \"Drelya\", \"lastname\": \"Drelev\", \"nickname\": \"drel4\"}"
+curl -X POST "http://127.0.0.1:8080/api/register" -H "Content-Type: application/json" -d "{\"login\": \"drel\", \"password\": \"1\", \"username\": \"drel4\", \"firstname\": \"Drelya\", \"lastname\": \"Drelev\", \"nickname\": \"drel4\"}"
 
-curl -X GET "http://127.0.0.1:8000/login" -H "Content-Type: application/json" -d "{\"login\": \"drel\", \"passwordmd5\": \"c4ca4238a0b923820dcc509a6f75849b\"}"
+curl -X POST "http://127.0.0.1:8080/api/login" -H "Content-Type: application/json" -d "{\"login\": \"drel\", \"password\": \"1\"}"
+
+curl -X POST "http://127.0.0.1:8080/api/token" -H "Content-Type: application/x-www-form-urlencoded" -d "username=drel&password=1"
+
+curl -X GET "http://127.0.0.1:8080/api/profile" -H "Authorization: Bearer <jwt token>"
+
+curl -X GET "http://127.0.0.1:8080/api/profile/follow?id=2" -H "Authorization: Bearer <jwt token>"
