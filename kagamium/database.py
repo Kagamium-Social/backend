@@ -277,3 +277,39 @@ class Database:
             )
 
         return None
+        
+    def unfollow_user(self, follower_id: int, following_id: int) -> str | None:
+        with self._cursor(commit=True) as cursor:
+            cursor.execute(
+                """
+                SELECT areFriends
+                FROM friends
+                WHERE useridfollower = ? AND useridfollowing = ?
+                """,
+                (follower_id, following_id),
+            )
+            follow_record = cursor.fetchone()
+
+            if follow_record is None:
+                return None
+
+            cursor.execute(
+                """
+                DELETE FROM friends
+                WHERE useridfollower = ? AND useridfollowing = ?
+                """,
+                (follower_id, following_id),
+            )
+
+            if follow_record[0] == 1:
+                cursor.execute(
+                    """
+                    UPDATE friends
+                    SET areFriends = 0
+                    WHERE useridfollower = ? AND useridfollowing = ?
+                    """,
+                    (following_id, follower_id),
+                )
+                return "Unfriended"
+
+        return None

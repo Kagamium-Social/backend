@@ -33,7 +33,7 @@ class Settings:
     instance_motd: str = "vadim gay"
     instance_mascot_image: str = ""
     instance_mascot_name: str = ""
-    backend_port: int = 8000
+    backend_port: int = 8080
     api_path: str = "api"
     jwt_secret: str = field(default_factory=_default_jwt_secret)
     jwt_expiration_minutes: int = 60

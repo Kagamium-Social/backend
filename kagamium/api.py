@@ -153,4 +153,26 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
 
         return {"status": "success", "details": details}
 
+    @router.get(_route_with_prefix(api_prefix, "/profile/unfollow"))
+    async def unfollow_profile(
+        authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
+        *,
+        user_id: Annotated[int, Query(alias="id")],
+    ) -> dict[str, str]:
+        if authenticated_user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authorization required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not database.user_exists(user_id):
+            return {"status": "failed", "details": "User does not exist"}
+
+        details = database.unfollow_user(authenticated_user_id, user_id)
+        if details is None:
+            return {"status": "success"}
+
+        return {"status": "success", "details": details}
+
     return router
