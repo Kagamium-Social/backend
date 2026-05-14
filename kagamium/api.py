@@ -174,5 +174,36 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
             return {"status": "success"}
 
         return {"status": "success", "details": details}
+        
+    @router.post(_route_with_prefix(api_prefix, "/wall/post"))
+    async def post_post(
+        authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
+        *,
+        walluser_id: Annotated[int, Query(alias="id")],
+        posttext: Annotated[str, Query(alias="text")],
+    ) -> dict[str, str]:
+        if authenticated_user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authorization required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not database.user_exists(walluser_id):
+            return {"status": "failed", "details": "User does not exist"}
+
+        database.posting(authenticated_user_id, walluser_id, posttext)
+        return {"status": "success"}
+    
+    @router.get(_route_with_prefix(api_prefix, "/wall/post"))
+    async def get_post(
+        post_id: Annotated[int, Query(alias="id")],
+    ) -> dict:
+
+        if not database.post_exists(post_id):
+            return {"status": "failed", "details": "Post does not exist"}
+
+        post = database.GET_THIS_FUCKING_POST(post_id)
+        return post
 
     return router

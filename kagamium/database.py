@@ -102,13 +102,14 @@ class Database:
             CREATE TABLE IF NOT EXISTS friends (
                 useridfollower INTEGER NOT NULL,
                 useridfollowing INTEGER NOT NULL,
-                areFriends INTERGER NOT NULL DEFAULT 0
+                areFriends INTEGER NOT NULL DEFAULT 0
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 userid INTEGER NOT NULL,
+                walluserid INTEGER NOT NULL,
                 posttext TEXT NOT NULL,
                 attachedimage TEXT,
                 repostpostid INTEGER
@@ -218,6 +219,11 @@ class Database:
         with self._cursor() as cursor:
             cursor.execute("SELECT 1 FROM users WHERE userid = ?", (user_id,))
             return cursor.fetchone() is not None
+            
+    def post_exists(self, post_id: int) -> bool:
+        with self._cursor() as cursor:
+            cursor.execute("SELECT 1 FROM posts WHERE id = ?", (post_id,))
+            return cursor.fetchone() is not None
 
     def follow_user(self, follower_id: int, following_id: int) -> str | None:
         with self._cursor(commit=True) as cursor:
@@ -312,4 +318,30 @@ class Database:
                 )
                 return "Unfriended"
 
+        return None
+
+    def posting(self, user_id: int, walluser_id: int, posttext: str, imageid: int = None) -> str | None:
+        with self._cursor(commit=True) as cursor:
+            cursor.execute(
+                """
+                INSERT INTO posts (userid, walluserid, posttext, attachedimage)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, walluser_id, posttext, imageid)
+            )
+        return None
+        
+    def GET_THIS_FUCKING_POST(self, post_id: int) -> str | None:
+        with self._cursor(commit=True) as cursor:
+            cursor.execute(
+                """
+                SELECT id, userid, walluserid, posttext, attachedimage, repostpostid
+                FROM posts
+                WHERE id = ?
+                """,
+                (post_id,)
+            )
+            post_info = cursor.fetchone()
+            return {"id": post_info[0], "userid": post_info[1], "walluserid": post_info[2], "text": post_info[3], "imageid": post_info[4], "repostpostid": post_info[5]}
+            
         return None
