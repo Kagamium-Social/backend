@@ -1,5 +1,5 @@
 from typing import Annotated
-
+from fastapi.responses import RedirectResponse
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordRequestForm
 
@@ -205,5 +205,9 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
 
         post = database.GET_THIS_FUCKING_POST(post_id)
         return post
+        
+    @router.get(_route_with_prefix(api_prefix, "/toro"))
+    async def toro():
+        return RedirectResponse(url=f"https://immich.flaf1x.ru/share/xwMSzPLo0DKWVBozE9P4BneON9YMMfRptm4lMNWJbAXEgjvkDJjMR4GxksA3a3rCp_k", status_code=303)
 
     return router
