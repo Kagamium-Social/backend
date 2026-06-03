@@ -115,6 +115,12 @@ class Database:
                 repostpostid INTEGER
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS likes (
+                userid INTEGER NOT NULL,
+                postid INTEGER NOT NULL
+            )
+            """,
             "CREATE INDEX IF NOT EXISTS idx_users_login ON users (login)",
             (
                 "CREATE INDEX IF NOT EXISTS idx_friends_pair "
@@ -245,7 +251,7 @@ class Database:
                     """,
                     (follower_id, following_id),
                 )
-                return "Friends"
+                return "friends"
 
             cursor.execute(
                 """
@@ -272,7 +278,7 @@ class Database:
                     """,
                     (follower_id, following_id),
                 )
-                return "Friends"
+                return "friends"
 
             cursor.execute(
                 """
@@ -316,7 +322,7 @@ class Database:
                     """,
                     (following_id, follower_id),
                 )
-                return "Unfriended"
+                return "unfriended"
 
         return None
 
@@ -331,7 +337,7 @@ class Database:
             )
         return None
         
-    def GET_THIS_FUCKING_POST(self, post_id: int) -> str | None:
+    def GET_THIS_FUCKING_POST(self, user_id: int, post_id: int) -> str | None:
         with self._cursor(commit=True) as cursor:
             cursor.execute(
                 """
@@ -342,6 +348,51 @@ class Database:
                 (post_id,)
             )
             post_info = cursor.fetchone()
-            return {"id": post_info[0], "userid": post_info[1], "walluserid": post_info[2], "text": post_info[3], "imageid": post_info[4], "repostpostid": post_info[5]}
+            cursor.execute("SELECT COUNT(*) FROM likes WHERE postid = ?", (post_id,))
+            likes = cursor.fetchone()
+            cursor.execute(
+                """
+                SELECT postid
+                FROM likes
+                WHERE userid = ? AND postid = ?
+                """,
+                (user_id, post_id),
+            )
+            iLiked = cursor.fetchone()
+            if iLiked is not None: iLiked = 1
+            else: iLiked = 0
+            return {"id": post_info[0], "userid": post_info[1], "walluserid": post_info[2], "text": post_info[3], "imageid": post_info[4], "repostpostid": post_info[5], "likes": likes[0], "i_liked": iLiked}
             
+        return None
+        
+    def likepost(self, user_id: int, post_id: int) -> str | None:
+        with self._cursor(commit=True) as cursor:
+            cursor.execute(
+                """
+                SELECT postid
+                FROM likes
+                WHERE userid = ? AND postid = ?
+                """,
+                (user_id, post_id),
+            )
+            like_record = cursor.fetchone()
+
+            if like_record is None:
+                cursor.execute(
+                    """
+                    INSERT INTO likes (userid, postid)
+                    VALUES (?, ?)
+                    """,
+                    (user_id, post_id)
+                )
+                return "liked"
+            else:
+                cursor.execute(
+                    """
+                    DELETE FROM likes
+                    WHERE userid = ? AND postid = ?
+                    """,
+                    (user_id, post_id),
+                )
+                return "unliked"
         return None

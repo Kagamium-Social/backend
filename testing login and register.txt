@@ -6,4 +6,4 @@ curl -X POST "http://127.0.0.1:8080/api/token" -H "Content-Type: application/x-w
 
 curl -X GET "http://127.0.0.1:8080/api/profile" -H "Authorization: Bearer <jwt token>"
 
-curl -X GET "http://127.0.0.1:8080/api/profile/follow?id=2" -H "Authorization: Bearer <jwt token>"
+curl -X POST "http://127.0.0.1:8080/api/profile/follow?id=2" -H "Authorization: Bearer <jwt token>"

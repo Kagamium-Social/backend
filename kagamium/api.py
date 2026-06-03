@@ -131,7 +131,7 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
 
         return profile.as_response()
 
-    @router.get(_route_with_prefix(api_prefix, "/profile/follow"))
+    @router.post(_route_with_prefix(api_prefix, "/profile/follow"))
     async def follow_profile(
         authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
         *,
@@ -153,7 +153,7 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
 
         return {"status": "success", "details": details}
 
-    @router.get(_route_with_prefix(api_prefix, "/profile/unfollow"))
+    @router.post(_route_with_prefix(api_prefix, "/profile/unfollow"))
     async def unfollow_profile(
         authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
         *,
@@ -197,17 +197,36 @@ def create_api_router(settings: Settings, database: Database) -> APIRouter:
     
     @router.get(_route_with_prefix(api_prefix, "/wall/post"))
     async def get_post(
+        authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
+        *,
         post_id: Annotated[int, Query(alias="id")],
     ) -> dict:
+        if authenticated_user_id is None:
+            authenticated_user_id = -1
 
         if not database.post_exists(post_id):
             return {"status": "failed", "details": "Post does not exist"}
 
-        post = database.GET_THIS_FUCKING_POST(post_id)
+        post = database.GET_THIS_FUCKING_POST(authenticated_user_id, post_id)
         return post
         
     @router.get(_route_with_prefix(api_prefix, "/toro"))
     async def toro():
         return RedirectResponse(url=f"https://immich.flaf1x.ru/share/xwMSzPLo0DKWVBozE9P4BneON9YMMfRptm4lMNWJbAXEgjvkDJjMR4GxksA3a3rCp_k", status_code=303)
+
+    @router.post(_route_with_prefix(api_prefix, "/wall/post/like"))
+    async def like_or_unlike_post(
+        authenticated_user_id: Annotated[int | None, Depends(resolve_authenticated_user_id)],
+        *,
+        post_id: Annotated[int, Query(alias="id")],
+    ) -> dict:
+        if authenticated_user_id is None:
+            authenticated_user_id = -1
+
+        if not database.post_exists(post_id):
+            return {"status": "failed", "details": "Post does not exist"}
+
+        post = database.likepost(authenticated_user_id, post_id)
+        return {"status": "success", "details": post}
 
     return router
